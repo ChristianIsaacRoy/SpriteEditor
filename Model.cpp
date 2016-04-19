@@ -74,7 +74,10 @@ void Model::onRequestToAddFrame(){
 }
 
 void Model::onFrameSelected(int frameNumber){
-    qDebug() << frameNumber;
     currentFrame = frames.at(frameNumber);
     emit currentFrameChanged(currentFrame);
+}
+
+QImage* Model::getCurrentFrame(){
+    return currentFrame;
 }

@@ -18,6 +18,7 @@ public:
     void eraseColor();
     void swapColors();
     QColor getColor();
+    QColor getHoverColor();
 
 public slots:
     void setHoverColor(QColor color);

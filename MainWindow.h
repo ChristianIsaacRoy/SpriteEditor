@@ -5,12 +5,16 @@
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
 #include <QColorDialog>
+#include <QImageWriter>
+#include <QFileDialog>
 #include "Cell.h"
 #include "Model.h"
 #include "ColorPreview.h"
 #include "DrawingScene.h"
 #include "FramePreview.h"
 #include "FilmStripScene.h"
+#include "DrawingGraphicsView.h"
+#include "PreviewScene.h"
 
 using namespace std;
 
@@ -72,11 +76,16 @@ private slots:
     void on_coloPaletteB_15_clicked();
     void on_coloPaletteB_16_clicked();
 
+    void on_actionExport_triggered();
+
+    void on_playButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     Model *model;
 
     DrawingScene *drawingScene;
+    DrawingGraphicsView *drawingGV;
 
     QGraphicsScene *primColorScene;
     QGraphicsScene *secColorScene;
@@ -86,6 +95,8 @@ private:
     ColorPreview *secPreview;
 
     FilmStripScene *filmStripScene;
+
+    PreviewScene *previewScene;
 
     int spriteWidth;
     int spriteHeight;

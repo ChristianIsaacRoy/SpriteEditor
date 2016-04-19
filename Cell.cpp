@@ -88,6 +88,10 @@ QColor Cell::getColor(){
     return myColor;
 }
 
+QColor Cell::getHoverColor(){
+    return hoverColor;
+}
+
 
 void Cell::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
     swapColors();

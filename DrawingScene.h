@@ -3,6 +3,8 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QWheelEvent>
+#include <QTimeLine>
 #include <Cell.h>
 
 class DrawingScene : public QGraphicsScene{
@@ -34,6 +36,8 @@ private:
     bool isDrawingPrimary;
     bool isDrawingSecondary;
     Cell* clickedCell;
+
+private slots:
 
 signals:
     void usingToolAt(QPointF mousePos);

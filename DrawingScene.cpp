@@ -145,9 +145,11 @@ void DrawingScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent){
 void DrawingScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent){
     if (isDrawingSecondary){
         clickedCell->swapColors();
-        emit cellModified(clickedCell->scenePos(), clickedCell->getColor());
+        emit cellModified(clickedCell->scenePos(), clickedCell->getHoverColor());
     }
     isDrawingPrimary = false;
     isDrawingSecondary = false;
 }
+
+
 

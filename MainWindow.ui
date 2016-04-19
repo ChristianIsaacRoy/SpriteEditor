@@ -221,7 +221,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QGraphicsView" name="drawingGV"/>
+           <widget class="QGraphicsView" name="becomeDrawingGV"/>
           </item>
           <item>
            <spacer name="verticalSpacer_2">
@@ -263,6 +263,13 @@
               <width>300</width>
               <height>300</height>
              </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="playButton">
+            <property name="text">
+             <string>...</string>
             </property>
            </widget>
           </item>
@@ -895,7 +902,7 @@
      <x>0</x>
      <y>0</y>
      <width>1049</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="font">
@@ -910,6 +917,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionExport"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -1056,6 +1064,14 @@
    </property>
    <property name="shortcut">
     <string>E</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export...</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens export options</string>
    </property>
   </action>
  </widget>

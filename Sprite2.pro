@@ -19,7 +19,9 @@ SOURCES += main.cpp\
     ColorPreview.cpp \
     DrawingScene.cpp \
     FilmStripScene.cpp \
-    FramePreview.cpp
+    FramePreview.cpp \
+    DrawingGraphicsView.cpp \
+    PreviewScene.cpp
 
 HEADERS  += MainWindow.h \
     Cell.h \
@@ -27,7 +29,9 @@ HEADERS  += MainWindow.h \
     ColorPreview.h \
     DrawingScene.h \
     FilmStripScene.h \
-    FramePreview.h
+    FramePreview.h \
+    DrawingGraphicsView.h \
+    PreviewScene.h
 
 FORMS    += \
     MainWindow.ui

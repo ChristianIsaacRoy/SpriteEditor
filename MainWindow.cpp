@@ -13,14 +13,12 @@ MainWindow::MainWindow(QWidget *parent) :
     model = new Model(spriteWidth, spriteHeight, DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR);
 
     // Set up drawing area
-    drawingScene = new DrawingScene(DEFAULT_CELL_SIZE, spriteWidth, spriteHeight, DEFAULT_BACKGROUND_COLOR, ui->drawingGV);
+    drawingGV = new DrawingGraphicsView(DEFAULT_CELL_SIZE * spriteWidth + 2, DEFAULT_CELL_SIZE *spriteHeight + 10, this);
+    drawingScene = new DrawingScene(DEFAULT_CELL_SIZE, spriteWidth, spriteHeight, DEFAULT_BACKGROUND_COLOR, drawingGV);
     drawingScene->setHoverColor(DEFAULT_PRIMARY_COLOR);
-
-    // Adjust maximum heigh and width of draw area based on number of cells
-    ui->drawingGV->setMaximumHeight(DEFAULT_CELL_SIZE *spriteHeight + 10);
-    ui->drawingGV->setMaximumWidth(DEFAULT_CELL_SIZE * spriteWidth + 2);
-    // add the scene to the GraphicsView
-    ui->drawingGV->setScene(drawingScene);
+    drawingGV->setScene(drawingScene);
+    ui->MiddleColumn->replaceWidget(ui->becomeDrawingGV, drawingGV);
+    delete ui->becomeDrawingGV;
 
     // Prepare Brush primary Color Preview
     primColorScene = new QGraphicsScene(ui->primColorGV);
@@ -51,6 +49,10 @@ MainWindow::MainWindow(QWidget *parent) :
     filmStripScene = new FilmStripScene(ui->filmStripGV);
     ui->filmStripGV->setScene(filmStripScene);
     ui->filmStripGV->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    // Prepare preview window
+    previewScene = new PreviewScene(this);
+    ui->previewWindow->setScene(previewScene);
 
     // connect all the signals and slots
     connectSignalsSlots();
@@ -102,6 +104,11 @@ void MainWindow::connectSignalsSlots(){
     // connections for selecting frames in frames film strip
     connect(filmStripScene, &FilmStripScene::frameSelected, model, &Model::onFrameSelected);
     connect(model, &Model::currentFrameChanged, drawingScene, &DrawingScene::showImage);
+
+    // connections for preview window
+    connect(model, &Model::currentFrameModified, previewScene, &PreviewScene::onImageModified);
+    connect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::onFrameChanged);
+    connect(model, &Model::frameAdded, previewScene, &PreviewScene::onFrameChanged);
 }
 
 void MainWindow::updateColorPalette(){
@@ -347,3 +354,18 @@ void MainWindow::on_coloPaletteB_16_clicked(){
     updateColorPreviews(QColorDialog::customColor(15));
 }
 
+
+void MainWindow::on_actionExport_triggered()
+{
+    QString saveFile=QFileDialog::getSaveFileName(this,tr("save"),QDir::homePath());
+        if(!saveFile.isEmpty())
+            if( (!model->getCurrentFrame()->save(saveFile,"PNG", -1)) );
+
+}
+
+void MainWindow::on_playButton_clicked(){
+    disconnect(model, &Model::currentFrameModified, previewScene, &PreviewScene::onImageModified);
+    disconnect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::onFrameChanged);
+    disconnect(model, &Model::frameAdded, previewScene, &PreviewScene::onFrameChanged);
+
+}

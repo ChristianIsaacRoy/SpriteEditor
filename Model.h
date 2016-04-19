@@ -14,6 +14,7 @@ public:
     Model(int width, int height, QColor brushColor1, QColor brushColor2);
     bool isBrushToolActive();
     bool isEraserToolActive();
+    QImage* getCurrentFrame();
 
 public slots:
     void onBrushToolActivated();
