@@ -1,16 +1,16 @@
-#ifndef FRAMEPREVIEW_H
-#define FRAMEPREVIEW_H
+#ifndef FILMSTRIPFRAME_H
+#define FILMSTRIPFRAME_H
 
 #include <QObject>
 #include <QGraphicsItem>
 #include <QPen>
 #include <QPainter>
 
-class FramePreview : public QObject, public QGraphicsItem
+class FilmStripFrame : public QObject, public QGraphicsItem
 {
     Q_OBJECT
 public:
-    explicit FramePreview(QImage *newImage, QGraphicsItem *parent = 0);
+    explicit FilmStripFrame(QImage *newImage, QGraphicsItem *parent = 0);
     void setImage(QImage *newImage);
     void selectFrame();
     void deselectFrame();
@@ -28,4 +28,4 @@ signals:
 public slots:
 };
 
-#endif // FRAMEPREVIEW_H
+#endif // FILMSTRIPFRAME_H

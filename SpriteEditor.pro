@@ -19,9 +19,12 @@ SOURCES += main.cpp\
     ColorPreview.cpp \
     DrawingScene.cpp \
     FilmStripScene.cpp \
-    FramePreview.cpp \
     DrawingGraphicsView.cpp \
-    PreviewScene.cpp
+    PreviewScene.cpp \
+    FilmStripFrame.cpp \
+    ColorPalette.cpp \
+    ColorPaletteButton.cpp \
+    NewProjectDialog.cpp
 
 HEADERS  += MainWindow.h \
     Cell.h \
@@ -29,9 +32,16 @@ HEADERS  += MainWindow.h \
     ColorPreview.h \
     DrawingScene.h \
     FilmStripScene.h \
-    FramePreview.h \
     DrawingGraphicsView.h \
-    PreviewScene.h
+    PreviewScene.h \
+    FilmStripFrame.h \
+    ColorPalette.h \
+    ColorPaletteButton.h \
+    NewProjectDialog.h
 
 FORMS    += \
-    MainWindow.ui
+    MainWindow.ui \
+    NewProjectDialog.ui
+
+RESOURCES += \
+    resources.qrc

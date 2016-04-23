@@ -11,6 +11,10 @@ public:
 public slots:
     void onImageModified(QImage* image);
     void onFrameChanged(QImage* image);
+    void showImage(QImage* image);
+
+private:
+    QImage *image;
 
 };
 

@@ -7,19 +7,24 @@
 #include <QColorDialog>
 #include <QImageWriter>
 #include <QFileDialog>
+#include <QToolButton>
+#include <QTimer>
+#include <QSpacerItem>
 #include "Cell.h"
 #include "Model.h"
 #include "ColorPreview.h"
 #include "DrawingScene.h"
-#include "FramePreview.h"
+#include "FilmStripFrame.h"
 #include "FilmStripScene.h"
 #include "DrawingGraphicsView.h"
 #include "PreviewScene.h"
+#include "ColorPalette.h"
+#include "NewProjectDialog.h"
 
 using namespace std;
 
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -27,17 +32,21 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     // Constants...
-    const int DEFAULT_SPRITE_WIDTH = 64;
-    const int DEFAULT_SPRITE_HEIGHT = 64;
+    const int DEFAULT_SPRITE_WIDTH = 32;
+    const int DEFAULT_SPRITE_HEIGHT = 32;
     const int DEFAULT_CELL_SIZE = 25;
     const QColor DEFAULT_BACKGROUND_COLOR = QColor(220, 220, 220);
     const QColor DEFAULT_PRIMARY_COLOR = Qt::black;
     const QColor DEFAULT_SECONDARY_COLOR = Qt::white;
     const QColor CLEAR = QColor(255, 255, 255, 0);
+    const int DEFAULT_FPS = 5;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+
+public slots:
+    void startNewProject(int columns, int rows, int fps);
 
 private slots:
     void on_actionDotGridOn_triggered();
@@ -56,29 +65,15 @@ private slots:
     void onBrushColorsReceived(QColor color1, QColor color2);
 
     void onCurrentFrameReceived(QImage *image);
+    void onPlayButtonTimerShot();
 
     void on_addFrameButton_clicked();
-
-    void on_coloPaletteB_clicked();
-    void on_coloPaletteB_2_clicked();
-    void on_coloPaletteB_3_clicked();
-    void on_coloPaletteB_4_clicked();
-    void on_coloPaletteB_5_clicked();
-    void on_coloPaletteB_6_clicked();
-    void on_coloPaletteB_7_clicked();
-    void on_coloPaletteB_8_clicked();
-    void on_coloPaletteB_9_clicked();
-    void on_coloPaletteB_10_clicked();
-    void on_coloPaletteB_11_clicked();
-    void on_coloPaletteB_12_clicked();
-    void on_coloPaletteB_13_clicked();
-    void on_coloPaletteB_14_clicked();
-    void on_coloPaletteB_15_clicked();
-    void on_coloPaletteB_16_clicked();
 
     void on_actionExport_triggered();
 
     void on_playButton_clicked();
+
+    void on_actionNew_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -97,13 +92,20 @@ private:
     FilmStripScene *filmStripScene;
 
     PreviewScene *previewScene;
+    vector<QImage*> images;
+    QToolButton *playButton;
+    vector<QImage*>::iterator imageBeingShown;
+
+    ColorPalette *colorPalette;
 
     int spriteWidth;
     int spriteHeight;
+    int fps;
 
     void connectSignalsSlots();
     void updateColorPalette();
-    void updateColorPreviews(QColor newColor);
+    void setUp();
+    void disconnectAll();
 
 signals:
     void brushPrimaryColorChanged(QColor color);
@@ -111,6 +113,7 @@ signals:
     void activateBrushTool();
     void eraserActivated();
     void requestToAddFrame();
+    void framesReqeusted();
 };
 
 #endif // MAINWINDOW_H

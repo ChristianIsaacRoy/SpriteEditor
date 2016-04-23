@@ -1,30 +1,30 @@
-#include "FramePreview.h"
+#include "FilmStripFrame.h"
 
-FramePreview::FramePreview(QImage *newImage, QGraphicsItem *parent) : QGraphicsItem(parent){
+FilmStripFrame::FilmStripFrame(QImage *newImage, QGraphicsItem *parent) : QGraphicsItem(parent){
     selected = false;
     image = newImage;
 }
 
-void FramePreview::setImage(QImage *newImage){
+void FilmStripFrame::setImage(QImage *newImage){
     image = newImage;
     update();
 }
 
-void FramePreview::selectFrame(){
+void FilmStripFrame::selectFrame(){
     selected = true;
     update();
 }
 
-void FramePreview::deselectFrame(){
+void FilmStripFrame::deselectFrame(){
     selected = false;
     update();
 }
 
-QRectF FramePreview::boundingRect() const{
+QRectF FilmStripFrame::boundingRect() const{
     return QRectF(0, 0, 120, 120);
 }
 
-void FramePreview::paint(QPainter *painter, const QStyleOptionGraphicsItem *options, QWidget *parent){
+void FilmStripFrame::paint(QPainter *painter, const QStyleOptionGraphicsItem *options, QWidget *parent){
     QRectF rec = boundingRect();
     QPen pen(Qt::SolidLine);
     pen.setWidth(5);

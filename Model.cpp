@@ -37,10 +37,12 @@ void Model::onEraserToolActivated(){
 
 void Model::setBrushPrimaryColor(QColor color){
     brushPrimaryColor = color;
+    emit brushColors(brushPrimaryColor, brushSecondaryColor);
 }
 
 void Model::setBrushSecondaryColor(QColor color){
     brushSecondaryColor = color;
+    emit brushColors(brushPrimaryColor, brushSecondaryColor);
 }
 
 void Model::usingToolAt(QPointF mousePos){
@@ -80,4 +82,8 @@ void Model::onFrameSelected(int frameNumber){
 
 QImage* Model::getCurrentFrame(){
     return currentFrame;
+}
+
+vector<QImage*> Model::getFrames(){
+    return frames;
 }

@@ -15,6 +15,7 @@ public:
     bool isBrushToolActive();
     bool isEraserToolActive();
     QImage* getCurrentFrame();
+    vector<QImage*> getFrames();
 
 public slots:
     void onBrushToolActivated();

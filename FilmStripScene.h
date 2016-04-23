@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include "FramePreview.h"
+#include "FilmStripFrame.h"
 
 
 class FilmStripScene : public QGraphicsScene{
@@ -17,8 +17,8 @@ protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent);
 
 private:
-    std::vector<FramePreview *> frames;
-    FramePreview *currentFrame;
+    std::vector<FilmStripFrame *> frames;
+    FilmStripFrame *currentFrame;
 
 signals:
     void frameSelected(int frameNumber);

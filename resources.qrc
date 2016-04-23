@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>images/eraser.png</file>
+        <file>images/paintBrush.png</file>
+        <file>images/playButton.png</file>
+        <file>images/trash.png</file>
+        <file>images/plus.png</file>
+    </qresource>
+</RCC>

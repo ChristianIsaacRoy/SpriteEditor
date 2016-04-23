@@ -10,6 +10,10 @@ class DrawingGraphicsView : public QGraphicsView{
     Q_OBJECT
 private:
     int _numScheduledScalings;
+    double currentScale;
+    double scaleMax = 1;
+    double scaleMin = .1;
+
 private slots:
     void scalingTime(qreal x);
     void animFinished();
