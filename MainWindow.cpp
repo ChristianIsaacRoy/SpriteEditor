@@ -36,9 +36,7 @@ void MainWindow::startNewProject(int columns, int rows, int fps){
     spriteHeight = rows;
     this->fps = fps;
 
-    Model *newModel = new Model(spriteWidth, spriteHeight, DEFAULT_PRIMARY_COLOR, DEFAULT_SECONDARY_COLOR);
-    delete model;
-    model = newModel;
+    model->reset(spriteWidth, spriteHeight, Qt::black, Qt::white);
 
     // Set up drawing area
     DrawingGraphicsView *newdrawingGV = new DrawingGraphicsView(DEFAULT_CELL_SIZE * spriteWidth + 2, DEFAULT_CELL_SIZE *spriteHeight + 10, this);
@@ -86,11 +84,13 @@ void MainWindow::connectSignalsSlots(){
     // connections for switching tools
     connect(this, SIGNAL(activateBrushTool()), model, SLOT(onBrushToolActivated()));
     connect(this, SIGNAL(eraserActivated()), model, SLOT(onEraserToolActivated()));
+    connect(this, &MainWindow::activatePaintBucket, model, &Model::onPaintBucketToolActivated);
 
     // connections for tools and drawingScene
-    connect(model, SIGNAL(brushToolActive(QColor,QColor,QPointF)), drawingScene, SLOT(onBrushToolActive(QColor,QColor,QPointF)));
+    connect(model, &Model::brushToolActive, drawingScene, &DrawingScene::onBrushToolActive);
     connect(model, &Model::eraserToolActive, drawingScene, &DrawingScene::onEraserToolActive);
-    connect(drawingScene, &DrawingScene::usingToolAt, model, &Model::usingToolAt);
+    connect(model, &Model::paintBucketToolActive, drawingScene, &DrawingScene::onPaintBucketToolActive);
+    connect(drawingScene, &DrawingScene::usingToolOnCell, model, &Model::usingToolOnCell);
     connect(model, &Model::brushColors, this, MainWindow::onBrushColorsReceived);
     connect(drawingScene, &DrawingScene::cellModified, model, &Model::onCellModified);
 
@@ -106,9 +106,9 @@ void MainWindow::connectSignalsSlots(){
 
     // connections for preview window
     connect(playButton, &QToolButton::clicked, this, &MainWindow::on_playButton_clicked);
-    connect(model, &Model::currentFrameModified, previewScene, &PreviewScene::onImageModified);
-    connect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::onFrameChanged);
-    connect(model, &Model::frameAdded, previewScene, &PreviewScene::onFrameChanged);
+    connect(model, &Model::currentFrameModified, previewScene, &PreviewScene::showImage);
+    connect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::showImage);
+    connect(model, &Model::frameAdded, previewScene, &PreviewScene::showImage);
 
     // connections for palette
     QVector<ColorPaletteButton*> buttons = colorPalette->getButtons();
@@ -117,6 +117,9 @@ void MainWindow::connectSignalsSlots(){
         connect(button, &ColorPaletteButton::primaryColorChangeRequest, model, &Model::setBrushPrimaryColor);
         connect(button, &ColorPaletteButton::secondaryColorChangeRequest, model, &Model::setBrushSecondaryColor);
     }
+
+    // connections for opening a file
+    connect(model, &Model::openingFile, this, &MainWindow::buildNewDrawingArea);
 }
 
 void MainWindow::setUp()
@@ -191,11 +194,12 @@ void MainWindow::disconnectAll(){
     // connections for switching tools
     disconnect(this, SIGNAL(activateBrushTool()), model, SLOT(onBrushToolActivated()));
     disconnect(this, SIGNAL(eraserActivated()), model, SLOT(onEraserToolActivated()));
+    disconnect(this, &MainWindow::activatePaintBucket, model, &Model::onPaintBucketToolActivated);
 
     // connections for tools and drawingScene
-    disconnect(model, SIGNAL(brushToolActive(QColor,QColor,QPointF)), drawingScene, SLOT(onBrushToolActive(QColor,QColor,QPointF)));
+    disconnect(model, &Model::brushToolActive, drawingScene, &DrawingScene::onBrushToolActive);
     disconnect(model, &Model::eraserToolActive, drawingScene, &DrawingScene::onEraserToolActive);
-    disconnect(drawingScene, &DrawingScene::usingToolAt, model, &Model::usingToolAt);
+    disconnect(drawingScene, &DrawingScene::usingToolOnCell, model, &Model::usingToolOnCell);
     disconnect(model, &Model::brushColors, this, MainWindow::onBrushColorsReceived);
     disconnect(drawingScene, &DrawingScene::cellModified, model, &Model::onCellModified);
 
@@ -211,9 +215,9 @@ void MainWindow::disconnectAll(){
 
     // connections for preview window
     disconnect(playButton, &QToolButton::clicked, this, &MainWindow::on_playButton_clicked);
-    disconnect(model, &Model::currentFrameModified, previewScene, &PreviewScene::onImageModified);
-    disconnect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::onFrameChanged);
-    disconnect(model, &Model::frameAdded, previewScene, &PreviewScene::onFrameChanged);
+    disconnect(model, &Model::currentFrameModified, previewScene, &PreviewScene::showImage);
+    disconnect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::showImage);
+    disconnect(model, &Model::frameAdded, previewScene, &PreviewScene::showImage);
 
     // connections for palette
     QVector<ColorPaletteButton*> buttons = colorPalette->getButtons();
@@ -222,6 +226,10 @@ void MainWindow::disconnectAll(){
         disconnect(button, &ColorPaletteButton::primaryColorChangeRequest, model, &Model::setBrushPrimaryColor);
         disconnect(button, &ColorPaletteButton::secondaryColorChangeRequest, model, &Model::setBrushSecondaryColor);
     }
+}
+
+void MainWindow::write(QString filename){
+
 }
 
 void MainWindow::on_actionDotGridOn_triggered(){
@@ -331,9 +339,9 @@ void MainWindow::onPlayButtonTimerShot(){
     }
     else{
         previewScene->showImage(model->getCurrentFrame());
-        connect(model, &Model::currentFrameModified, previewScene, &PreviewScene::onImageModified);
-        connect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::onFrameChanged);
-        connect(model, &Model::frameAdded, previewScene, &PreviewScene::onFrameChanged);
+        connect(model, &Model::currentFrameModified, previewScene, &PreviewScene::showImage);
+        connect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::showImage);
+        connect(model, &Model::frameAdded, previewScene, &PreviewScene::showImage);
     }
     imageBeingShown++;
 }
@@ -344,16 +352,16 @@ void MainWindow::on_addFrameButton_clicked(){
 
 void MainWindow::on_actionExport_triggered()
 {
-    QString saveFile=QFileDialog::getSaveFileName(this,tr("save"),QDir::homePath());
+    QString saveFile=QFileDialog::getSaveFileName(this,tr("Export"),QDir::homePath());
         if(!saveFile.isEmpty())
             if( (!model->getCurrentFrame()->save(saveFile,"PNG", -1)) );
 
 }
 
 void MainWindow::on_playButton_clicked(){
-    disconnect(model, &Model::currentFrameModified, previewScene, &PreviewScene::onImageModified);
-    disconnect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::onFrameChanged);
-    disconnect(model, &Model::frameAdded, previewScene, &PreviewScene::onFrameChanged);
+    disconnect(model, &Model::currentFrameModified, previewScene, &PreviewScene::showImage);
+    disconnect(model, &Model::currentFrameChanged, previewScene, &PreviewScene::showImage);
+    disconnect(model, &Model::frameAdded, previewScene, &PreviewScene::showImage);
     images = model->getFrames();
     imageBeingShown = images.begin();
     onPlayButtonTimerShot();
@@ -363,5 +371,57 @@ void MainWindow::on_actionNew_triggered(){
     NewProjectDialog newWindow;
     connect(&newWindow, &NewProjectDialog::newGameRequest, this, &MainWindow::startNewProject);
     newWindow.exec();
+
+}
+
+void MainWindow::on_paintBucketButton_clicked(){
+    ui->primColorGV->setMaximumHeight(0);
+    ui->secColorGV->setMaximumHeight(0);
+    emit activatePaintBucket();
+}
+
+void MainWindow::on_actionOpen_triggered(){
+    QString openFile = QFileDialog::getOpenFileName(this, tr("Open"), QDir::homePath(), tr(" PixEdt (*.pxl)"));
+    qDebug() << openFile;
+    if (!model->open(openFile))
+        qDebug() << "suck";
+}
+
+void MainWindow::on_actionSave_as_triggered(){
+    QString saveFile = QFileDialog::getSaveFileName(this, tr("Save"), QDir::homePath(), tr(" PixEdt (*.pxl)"));
+    if (!model->save(saveFile))
+        qDebug() << "suck";
+}
+
+void MainWindow::buildNewDrawingArea(int width, int height, int fps){
+    // Prepare film strip
+    delete filmStripScene;
+    filmStripScene = new FilmStripScene(ui->filmStripGV);
+    ui->filmStripGV->setScene(filmStripScene);
+    ui->filmStripGV->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    // Set up drawing area
+    spriteWidth = width;
+    spriteHeight = height;
+    delete drawingScene;
+    drawingScene = new DrawingScene(DEFAULT_CELL_SIZE, width, height, DEFAULT_BACKGROUND_COLOR, drawingGV);
+    drawingScene->setHoverColor(DEFAULT_PRIMARY_COLOR);
+    drawingGV->setScene(drawingScene);
+
+    // connections for tools and drawingScene
+    connect(model, &Model::brushToolActive, drawingScene, &DrawingScene::onBrushToolActive);
+    connect(model, &Model::eraserToolActive, drawingScene, &DrawingScene::onEraserToolActive);
+    connect(model, &Model::paintBucketToolActive, drawingScene, &DrawingScene::onPaintBucketToolActive);
+    connect(drawingScene, &DrawingScene::usingToolOnCell, model, &Model::usingToolOnCell);
+    connect(model, &Model::brushColors, this, MainWindow::onBrushColorsReceived);
+    connect(drawingScene, &DrawingScene::cellModified, model, &Model::onCellModified);
+
+    // connections for film strip
+    // connections for adding and removing frames
+    connect(model, &Model::frameAdded, drawingScene, &DrawingScene::showImage);
+    connect(model, &Model::frameAdded, filmStripScene, &FilmStripScene::addFrame);
+    // connections for selecting frames in frames film strip
+    connect(filmStripScene, &FilmStripScene::frameSelected, model, &Model::onFrameSelected);
+    connect(model, &Model::currentFrameChanged, drawingScene, &DrawingScene::showImage);
 
 }

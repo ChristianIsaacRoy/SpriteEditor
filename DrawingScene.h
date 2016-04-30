@@ -12,7 +12,6 @@ class DrawingScene : public QGraphicsScene{
 
 public:
     DrawingScene(int cellSize, int cols, int rows, QColor backgroundColor, QObject *parent = 0);
-    void buildGrid(int cols, int rows, int cellSize, QColor hoverColor);
     void setHoverColor(QColor color);
     void showImage(QImage *image);
     void showSolidGrid();
@@ -20,28 +19,29 @@ public:
     void showNoGrid();
 
 public slots:
-    void onBrushToolActive(QColor primColor, QColor seconColor, QPointF mousePos);
-    void onEraserToolActive(QPointF mousePos);
+    void onBrushToolActive(QColor primColor, QColor seconColor, Cell *cell);
+    void onEraserToolActive(Cell *cell);
+    void onPaintBucketToolActive(QColor primColor, QColor seconColor, Cell *cell);
 
 protected:
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent * mouseEvent);
     virtual void mousePressEvent(QGraphicsSceneMouseEvent * mouseEvent);
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent * mouseEvent);
+    virtual void drawForeground(QPainter *painter, const QRectF &rect);
 
 private:
     std::vector<Cell*> cells;
     int myCols;
     int myRows;
-
+    int grid;
     bool isDrawingPrimary;
     bool isDrawingSecondary;
-    Cell* clickedCell;
 
 private slots:
 
 signals:
-    void usingToolAt(QPointF mousePos);
-    void cellModified(QPointF cellPos, QColor color);
+    void usingToolOnCell(Cell *cell);
+    void cellModified(Cell *cell, QColor color);
 
 };
 

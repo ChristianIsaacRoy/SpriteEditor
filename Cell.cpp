@@ -2,42 +2,42 @@
 
 #include <QDebug>
 
-Cell::Cell(QGraphicsItem *parent) : QGraphicsItem(parent){
+Cell::Cell(int size, QColor color, QGraphicsItem *parent) : QGraphicsItem(parent){
     setFlag(ItemIsMovable, false);
     setAcceptHoverEvents(true);
+    //this->setCacheMode(QGraphicsItem::ItemCoordinateCache);
 
-    myColor = Qt::white;
-    myColor.setAlpha(0);
-
-    hoverColor = myColor;
+    this->size = size;
+    myColor = QColor(0,0,0,0);
+    hoverColor = color;
     selected = false;
-    outline = 0;
+    hovering = false;
 }
 
 QRectF Cell::boundingRect() const{
-    return QRectF(0, 0, 25, 25);
+    return QRectF(0, 0, size, size);
+}
+
+int Cell::getSize(){
+    return size;
 }
 
 void Cell::paint(QPainter *painter, const QStyleOptionGraphicsItem *options, QWidget *parent){
     QRectF rec = boundingRect();
 
-    QBrush brush(myColor);
+    QBrush brush(Qt::white);
+    if (hovering){
+        brush.setColor(hoverColor);
+    }
+    else{
+        brush.setColor(myColor);
+    }
 
     if (selected){
         QPen pen(Qt::SolidLine);
         pen.setColor(Qt::yellow);
         painter->setPen(pen);
         brush.setStyle(Qt::Dense1Pattern);
-    }
-    else if (outline == 0){
-        QPen pen(Qt::DotLine);
-        pen.setColor(Qt::black);
-        painter->setPen(pen);
-    }
-    else if (outline == 1){
-        QPen pen(Qt::SolidLine);
-        pen.setColor(Qt::black);
-        painter->setPen(pen);
     }
     else {
         QPen pen(Qt::NoPen);
@@ -47,24 +47,8 @@ void Cell::paint(QPainter *painter, const QStyleOptionGraphicsItem *options, QWi
     painter->drawRect(rec);
 }
 
-void Cell::setDottedOutline(){
-    outline = 0;
-    update();
-}
-
-void Cell::setSolidOutline(){
-    outline = 1;
-    update();
-}
-
-void Cell::setNoOutline(){
-    outline = 3;
-    update();
-}
-
 void Cell::setHoverColor(QColor color){
     hoverColor = color;
-    update();
 }
 
 void Cell::setColor(QColor color){
@@ -73,15 +57,7 @@ void Cell::setColor(QColor color){
 }
 
 void Cell::eraseColor(){
-    myColor.setAlpha(0);
-    hoverColor.setAlpha(0);
-    update();
-}
-
-void Cell::swapColors(){
-    QColor color = myColor;
-    myColor = hoverColor;
-    hoverColor = color;
+    myColor = QColor(0,0,0,0);
 }
 
 QColor Cell::getColor(){
@@ -92,18 +68,18 @@ QColor Cell::getHoverColor(){
     return hoverColor;
 }
 
-
 void Cell::hoverEnterEvent(QGraphicsSceneHoverEvent *event){
-    swapColors();
-
-    update();
+    hovering = true;
     QGraphicsItem::hoverEnterEvent(event);
 }
 
-void Cell::hoverLeaveEvent(QGraphicsSceneHoverEvent *event){
-    swapColors();
+void Cell::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+    hovering = false;
+    QGraphicsItem::mousePressEvent(event);
+}
 
-    update();
+void Cell::hoverLeaveEvent(QGraphicsSceneHoverEvent *event){
+    hovering = false;
     QGraphicsItem::hoverLeaveEvent(event);
 }
 

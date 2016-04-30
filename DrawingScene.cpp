@@ -5,6 +5,7 @@
 DrawingScene::DrawingScene(int cellSize, int cols, int rows, QColor backgroundColor, QObject *parent) : QGraphicsScene(parent){
     myCols = cols;
     myRows = rows;
+    grid = 0;
 
     // Add a background to the drawing scene.
     this->setBackgroundBrush(QBrush(backgroundColor));
@@ -13,7 +14,7 @@ DrawingScene::DrawingScene(int cellSize, int cols, int rows, QColor backgroundCo
     Cell *cell;
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
-            cell = new Cell();
+            cell = new Cell(cellSize);
             cells.push_back(cell);
             cell->setPos(j*cellSize, i*cellSize);
             this->addItem(cell);
@@ -48,107 +49,142 @@ void DrawingScene::showImage(QImage *image){
 }
 
 void DrawingScene::showSolidGrid(){
-    for (std::vector<Cell*>::iterator it = cells.begin(); it != cells.end(); it++){
-        Cell* cell = *it;
-        cell->setSolidOutline();
-    }
+    grid = 2;
+    update();
 }
 
 void DrawingScene::showDottedGrid(){
-    for (std::vector<Cell*>::iterator it = cells.begin(); it != cells.end(); it++){
-        Cell* cell = *it;
-        cell->setDottedOutline();
-    }
+    grid = 0;
+    update();
 }
 
 void DrawingScene::showNoGrid(){
-    for (std::vector<Cell*>::iterator it = cells.begin(); it != cells.end(); it++){
-        Cell* cell = *it;
-        cell->setNoOutline();
+    grid = 1;
+    update();
+}
+
+void DrawingScene::onBrushToolActive(QColor primColor, QColor seconColor, Cell *cell){
+        if (isDrawingPrimary){
+            cell->setColor(primColor);
+            emit cellModified(cell, primColor);
+        }
+        else if (isDrawingSecondary){
+            cell->setColor(seconColor);
+            emit cellModified(cell, seconColor);
+        }
+}
+
+void DrawingScene::onEraserToolActive(Cell *cell){
+    if (isDrawingPrimary | isDrawingSecondary){
+        cell->eraseColor();
+        emit cellModified(cell, cell->getColor());
     }
 }
 
-void DrawingScene::onBrushToolActive(QColor primColor, QColor seconColor, QPointF mousePos){
-    if (isDrawingPrimary | isDrawingSecondary){
-        // Get the cell at the mouse event and color it
-        QGraphicsItem *item = this->itemAt(mousePos, QTransform());
-        Cell *cell;
-        if ( (cell = dynamic_cast<Cell*>(item)) ){
-
-            if (isDrawingPrimary){
-                cell->setColor(primColor);
-                cell->setHoverColor(primColor);
-                emit cellModified(cell->scenePos(), primColor);
-            }
-            else if (isDrawingSecondary){
-                cell->setColor(seconColor);
-                cell->setHoverColor(primColor);
-                emit cellModified(cell->scenePos(), seconColor);
-            }
-
-            cell->update();
-        }
+void DrawingScene::onPaintBucketToolActive(QColor primColor, QColor seconColor, Cell *cell){
+    // If the color of the cell is the same as the color being used, just stop
+    if (cell->getColor() == primColor && isDrawingPrimary ||
+            cell->getColor() == seconColor && isDrawingSecondary){
+        return;
     }
-}
 
-void DrawingScene::onEraserToolActive(QPointF mousePos){
-    if (isDrawingPrimary | isDrawingSecondary){
-        // Get the cell at the mouse event and erase it
-        QGraphicsItem *item = this->itemAt(mousePos, QTransform());
-        Cell *cell;
-        QColor color = Qt::white;
-        color.setAlpha(0);
-        if ( (cell = dynamic_cast<Cell*>(item)) ){
-                cell->setColor(color);
-                cell->setHoverColor(color);
-                cell->update();
-                emit cellModified(cell->scenePos(), color);
+    // Store the old color of the cell being modified
+    QColor oldColor = cell->getColor();
+
+    // Color this cell if needed, else return
+    onBrushToolActive(primColor, seconColor, cell);
+
+    // If the cells around this one are the same color, tell them to color themselves too.
+
+    // Locations of cells on scene
+    QPoint above(cell->scenePos().x(), cell->scenePos().y() - cell->getSize());
+    QPoint below(cell->scenePos().x(), cell->scenePos().y() + cell->getSize());
+    QPoint left  (cell->scenePos().x() - cell->getSize(), cell->scenePos().y());
+    QPoint right(cell->scenePos().x() + cell->getSize(), cell->scenePos().y());
+
+    // Find items in scene
+    QVector<QGraphicsItem*> items;
+    items.push_back(this->itemAt(above, QTransform()));
+    items.push_back(this->itemAt(right, QTransform()));
+    items.push_back(this->itemAt(below, QTransform()));
+    items.push_back(this->itemAt(left, QTransform()));
+
+    // Confirm that the items are cells
+    for (int i = 0; i < 4; i++){
+        Cell *cell2;
+        if ( cell2 = qgraphicsitem_cast<Cell*>(items.at(i)) ){
+
+            // If the cell is the same color as this cell, we want to change it too.
+            if (cell2->getColor() == oldColor){
+                onPaintBucketToolActive(primColor, seconColor, cell2);
+            }
         }
-
     }
 }
 
 void DrawingScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent){
     if (isDrawingPrimary | isDrawingSecondary){
-        emit usingToolAt(mouseEvent->scenePos());
+        // Get the cell at the mouse event and color it
+        QGraphicsItem *item = this->itemAt(mouseEvent->scenePos(), QTransform());
+        Cell *cell;
+        if ( (cell = dynamic_cast<Cell*>(item)) ){
+            emit usingToolOnCell(cell);
+        }
     }
-
     QGraphicsScene::mouseMoveEvent(mouseEvent);
 }
 
 void DrawingScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent){
+    // Get the cell at the mouse event
+    QGraphicsItem *item = this->itemAt(mouseEvent->scenePos(), QTransform());
+    Cell *cell;
+    if ( (cell = dynamic_cast<Cell*>(item)) ){
 
-    if (mouseEvent->button() == Qt::LeftButton){
-        // Get the cell at the mouse event and color it
-        QPointF point = mouseEvent->scenePos();
-        QGraphicsItem *item = this->itemAt(point, QTransform());
-        Cell *cell;
-        if ( (cell = dynamic_cast<Cell*>(item)) ){
+        // Check for left click
+        if (mouseEvent->button() == Qt::LeftButton){
             isDrawingPrimary = true;
-            emit usingToolAt(point);
+            emit usingToolOnCell(cell);
         }
-    }
-    else if (mouseEvent->button() == Qt::RightButton){
-        // Get the cell at the mouse event and color it
-        QPointF point = mouseEvent->scenePos();
-        QGraphicsItem *item = this->itemAt(point, QTransform());
-        Cell *cell;
-        if ( (cell = dynamic_cast<Cell*>(item)) ){
-            clickedCell = cell;
-            isDrawingSecondary = true;
-            emit usingToolAt(point);
-        }
-    }
 
+        // Check for right click
+        else if (mouseEvent->button() == Qt::RightButton){
+            isDrawingSecondary = true;
+            emit usingToolOnCell(cell);
+        }
+    }
 }
 
 void DrawingScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent){
-    if (isDrawingSecondary){
-        clickedCell->swapColors();
-        emit cellModified(clickedCell->scenePos(), clickedCell->getHoverColor());
-    }
     isDrawingPrimary = false;
     isDrawingSecondary = false;
+    QGraphicsScene::mouseReleaseEvent(mouseEvent);
+}
+
+void DrawingScene::drawForeground(QPainter *painter, const QRectF &rect){
+    Cell *cell = *cells.begin();
+
+    int width = cell->getSize();
+    qreal left = 0;
+    qreal top = 0;
+    qreal right = width*myCols;
+    qreal bottom = width*myRows;
+
+    QVarLengthArray<QLineF, 1000> lines;
+
+    for (qreal x = left; x <= right; x += width){
+        lines.append(QLineF(x, 0, x, bottom));
+    }
+    for (qreal y = top; y <= bottom; y += width)
+        lines.append(QLineF(left, y, right, y));
+
+    if (grid == 0){
+        painter->setPen(Qt::DotLine);
+    }
+    else if (grid == 1){
+        painter->setPen(Qt::NoPen);
+    }
+    painter->drawLines(lines.data(), lines.size());
+    QGraphicsScene::drawForeground(painter, rect);
 }
 
 

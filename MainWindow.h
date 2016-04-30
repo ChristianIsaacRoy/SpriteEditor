@@ -34,7 +34,7 @@ class MainWindow : public QMainWindow
     // Constants...
     const int DEFAULT_SPRITE_WIDTH = 32;
     const int DEFAULT_SPRITE_HEIGHT = 32;
-    const int DEFAULT_CELL_SIZE = 25;
+    const int DEFAULT_CELL_SIZE = 50;
     const QColor DEFAULT_BACKGROUND_COLOR = QColor(220, 220, 220);
     const QColor DEFAULT_PRIMARY_COLOR = Qt::black;
     const QColor DEFAULT_SECONDARY_COLOR = Qt::white;
@@ -61,19 +61,20 @@ private slots:
     void on_eraserButton_clicked();
     void on_actionUse_Brush_triggered();
     void on_actionUse_Eraser_triggered();
+    void on_addFrameButton_clicked();
+    void on_actionExport_triggered();
+    void on_playButton_clicked();
+    void on_actionNew_triggered();
+    void on_paintBucketButton_clicked();
+    void on_actionOpen_triggered();
 
     void onBrushColorsReceived(QColor color1, QColor color2);
-
     void onCurrentFrameReceived(QImage *image);
     void onPlayButtonTimerShot();
 
-    void on_addFrameButton_clicked();
+    void on_actionSave_as_triggered();
 
-    void on_actionExport_triggered();
-
-    void on_playButton_clicked();
-
-    void on_actionNew_triggered();
+    void buildNewDrawingArea(int width, int height, int fps);
 
 private:
     Ui::MainWindow *ui;
@@ -106,12 +107,14 @@ private:
     void updateColorPalette();
     void setUp();
     void disconnectAll();
+    void write(QString filename);
 
 signals:
     void brushPrimaryColorChanged(QColor color);
     void brushSecondaryColorChanged(QColor color);
     void activateBrushTool();
     void eraserActivated();
+    void activatePaintBucket();
     void requestToAddFrame();
     void framesReqeusted();
 };

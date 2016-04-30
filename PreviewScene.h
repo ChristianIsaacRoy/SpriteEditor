@@ -3,14 +3,18 @@
 
 #include <QGraphicsScene>
 
-class PreviewScene : public QGraphicsScene
-{
+/**
+ * @brief The PreviewScene class - Used to display a QImage.
+ */
+class PreviewScene : public QGraphicsScene{
 public:
     PreviewScene(QObject* parent);
 
 public slots:
-    void onImageModified(QImage* image);
-    void onFrameChanged(QImage* image);
+    /**
+     * @brief showImage - The preview scene will display a given image
+     * @param image - A pointer to a QImage to display.
+     */
     void showImage(QImage* image);
 
 private:

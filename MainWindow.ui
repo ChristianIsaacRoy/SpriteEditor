@@ -10,6 +10,12 @@
     <height>642</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>Segoe UI</family>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Sprite Editor</string>
   </property>
@@ -212,7 +218,7 @@ QToolButton::menu-arrow:open {
            <number>2</number>
           </property>
           <item>
-           <widget class="QToolButton" name="toolButton_2">
+           <widget class="QToolButton" name="paintBucketButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -267,6 +273,16 @@ QToolButton::menu-arrow:open {
             </property>
             <property name="text">
              <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="resources.qrc">
+              <normaloff>:/images/images/paintBucket.png</normaloff>:/images/images/paintBucket.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -587,12 +603,12 @@ QToolButton::menu-arrow:open {
      <x>0</x>
      <y>0</y>
      <width>1049</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <family>Yu Gothic UI Semibold</family>
+     <family>Segoe UI</family>
      <pointsize>9</pointsize>
      <weight>75</weight>
      <bold>true</bold>
@@ -603,6 +619,9 @@ QToolButton::menu-arrow:open {
      <string>File</string>
     </property>
     <addaction name="actionNew"/>
+    <addaction name="actionOpen"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSave_as"/>
     <addaction name="actionExport"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -628,6 +647,7 @@ QToolButton::menu-arrow:open {
     </widget>
     <addaction name="menuBrush_Tools"/>
     <addaction name="actionUse_Eraser"/>
+    <addaction name="actionPaint_Bucket_Tool"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -767,16 +787,53 @@ QToolButton::menu-arrow:open {
    <property name="toolTip">
     <string>Opens export options</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Segoe UI</family>
+    </font>
+   </property>
   </action>
   <action name="actionNew">
    <property name="text">
     <string>New...</string>
    </property>
    <property name="toolTip">
-    <string>Start a New Project</string>
+    <string>Starts a New Project.</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Segoe UI</family>
+    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionPaint_Bucket_Tool">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/images/images/paintBucket.png</normaloff>:/images/images/paintBucket.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paint Bucket Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>Activates the paint bucket tool.</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save...</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as...</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open...</string>
    </property>
   </action>
  </widget>
